@@ -12,18 +12,24 @@ const unsigned char MeasuredTxPower = 0x7F;                   // 0x7Fのみ使�
 # define MAX_MESSAGE_LENGTH 13
 unsigned char DeviceMessage[MAX_MESSAGE_LENGTH] = {0x00};     // 未使用の場合は0x00を設定する
 
+#define MAX_FRAME_LENGTH MAX_MESSAGE_LENGTH+1+5+1
+
+void createBeaconFrameData(unsigned char *data){
+  data[0] = FrameType;
+  memcpy(&data[1], HWID, 5);
+  data[6] = MeasuredTxPower;
+  memcpy(&data[7], DeviceMessage, MAX_MESSAGE_LENGTH);
+}
+
 void setup() {
   Serial.begin(9600);
 
   ble.setAdvertisedServiceUuid(lineService.uuid());
 
   // フレームを設定する
-  unsigned char data[MAX_MESSAGE_LENGTH + 7] = {0x00};
-  data[0] = FrameType;
-  memcpy(&data[1], HWID, 5);
-  data[6] = MeasuredTxPower;
-  memcpy(&data[7], DeviceMessage, MAX_MESSAGE_LENGTH);
-  ble.setAdvertisedServiceData(lineService.uuid(), data, (MAX_MESSAGE_LENGTH + 7));
+  unsigned char data[MAX_FRAME_LENGTH] = {0x00};
+  createBeaconFrameData(data);
+  ble.setAdvertisedServiceData(lineService.uuid(), data, MAX_FRAME_LENGTH);
 
   ble.begin();
 }
